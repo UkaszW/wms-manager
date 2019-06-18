@@ -1,6 +1,7 @@
 package com.lodz.p.edu.iap.lab.wmsmanager.entity.warehouse;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import javax.persistence.*;
@@ -8,6 +9,7 @@ import java.util.List;
 
 @Entity
 @Data
+@NoArgsConstructor
 public class Warehouse {
 
     @Id
