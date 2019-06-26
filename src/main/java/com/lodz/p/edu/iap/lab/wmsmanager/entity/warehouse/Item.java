@@ -12,7 +12,7 @@ import javax.persistence.*;
 public class Item {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @NonNull
     private String code;

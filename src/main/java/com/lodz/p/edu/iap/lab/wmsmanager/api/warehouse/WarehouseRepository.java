@@ -1,4 +1,4 @@
-package com.lodz.p.edu.iap.lab.wmsmanager.api;
+package com.lodz.p.edu.iap.lab.wmsmanager.api.warehouse;
 
 import com.lodz.p.edu.iap.lab.wmsmanager.entity.warehouse.Warehouse;
 import org.springframework.data.jpa.repository.JpaRepository;
