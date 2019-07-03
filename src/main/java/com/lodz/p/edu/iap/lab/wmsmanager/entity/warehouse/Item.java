@@ -1,26 +1,24 @@
 package com.lodz.p.edu.iap.lab.wmsmanager.entity.warehouse;
 
+import com.lodz.p.edu.iap.lab.wmsmanager.entity.BaseEntity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 @Entity
 @Data
 @NoArgsConstructor
-public class Item {
+public class Item extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-    @NonNull
-    private String code;
-    @NonNull
-    private String name;
-    @NonNull
+    @ManyToOne
+    @JoinColumn
+    private ItemType itemType;
     private Long quantity;
     @ManyToOne
     @JoinColumn
-    private Status status;
+    private Warehouse warehouse;
 }

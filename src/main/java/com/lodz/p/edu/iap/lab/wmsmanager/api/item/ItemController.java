@@ -27,6 +27,11 @@ public class ItemController {
         return repository.findById(id);
     }
 
+    @GetMapping("/{externalId}")
+    public Optional<Item> getByExternalId(@PathVariable(value = "externalId") String externalId) {
+        return repository.findAll().stream().filter(event -> externalId.equals(event.getExternalId())).findFirst();
+    }
+
     @PostMapping
     public void save(@RequestBody Item item) {
         repository.save(item);

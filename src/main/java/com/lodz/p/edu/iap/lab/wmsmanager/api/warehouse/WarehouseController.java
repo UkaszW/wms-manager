@@ -28,6 +28,11 @@ public class WarehouseController {
         return repository.findById(id);
     }
 
+    @GetMapping("/{externalId}")
+    public Optional<Warehouse> getByExternalId(@PathVariable(value = "externalId") String externalId) {
+        return repository.findAll().stream().filter(event -> externalId.equals(event.getExternalId())).findFirst();
+    }
+
     @PostMapping
     public void save(@RequestBody Warehouse warehouse) {
         repository.save(warehouse);
