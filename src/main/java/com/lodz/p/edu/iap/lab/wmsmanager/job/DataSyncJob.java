@@ -32,9 +32,9 @@ public class DataSyncJob {
     }
 
     // "0 0 * * * *" every hour
-    // "0 0/15 0 ? * *" every 15 minutes
+    // "0 0/5 0 ? * *" every 5 minutes
     // "*/10 * * * * *" every 10 seconds
-    @Scheduled(cron = "0 0/15 0 ? * *")
+    @Scheduled(cron = "0 0/5 0 ? * *")
     private void syncEvents() {
         log.info("Date synchronization: " + Instant.now());
 
