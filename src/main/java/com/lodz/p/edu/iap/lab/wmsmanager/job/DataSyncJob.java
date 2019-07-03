@@ -1,6 +1,7 @@
 package com.lodz.p.edu.iap.lab.wmsmanager.job;
 
 import com.lodz.p.edu.iap.lab.wmsmanager.api.event.EventController;
+import com.lodz.p.edu.iap.lab.wmsmanager.entity.BaseEntity;
 import com.lodz.p.edu.iap.lab.wmsmanager.entity.event.Event;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -11,12 +12,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -33,30 +32,41 @@ public class DataSyncJob {
     }
 
     // "0 0 * * * *" every hour
-    // "0 0/15 * 1/1 * ? *" every 15 minutes
-    // "*/10 * * * * *" = every 10 seconds
-    @Scheduled(cron = "0 0/15 * 1/1 * ? *")
+    // "0 0/15 0 ? * *" every 15 minutes
+    // "*/10 * * * * *" every 10 seconds
+    @Scheduled(cron = "0 0/15 0 ? * *")
     private void syncEvents() {
         log.info("Date synchronization: " + Instant.now());
 
         try {
             ResponseEntity<Collection<Event>> responseEntity = restTemplate
-                    .exchange(EVENT_SYNC_URL, HttpMethod.GET, null, new ParameterizedTypeReference<Collection<Event>>() {
-                    });
+                    .exchange(EVENT_SYNC_URL, HttpMethod.GET, null, new ParameterizedTypeReference<Collection<Event>>() {});
 
             Collection<Event> events = responseEntity.getBody();
-            if (!CollectionUtils.isEmpty(events)) {
-                events.forEach(event -> {
-                    if (event.isAddedOrUpdated()) {
-                        eventController.getByExternalId(event.getExternalId()).ifPresent(existingEvent -> {
-                            eventController.update(existingEvent.getId(), event);
-                        });
+            update(events);
 
-                    }
-                });
-            }
         } catch (Exception e) {
             log.error("Error occurred: ", e);
         }
     }
+
+    private void update(Collection<Event> events) {
+        if (!CollectionUtils.isEmpty(events)) {
+            consumeAddition(events);
+            consumeDeletion(events);
+        }
+    }
+
+    private void consumeAddition(Collection<Event> events) {
+        events.stream().filter(BaseEntity::isAddedOrUpdated).forEach(event -> eventController.getByExternalId(event.getExternalId()).ifPresentOrElse(
+                existingEvent -> eventController.update(existingEvent.getId(), event), () -> eventController.save(event)));
+    }
+
+    private void consumeDeletion(Collection<Event> events) {
+        Set<String> externalEventsIds = events.stream().map(BaseEntity::getExternalId).collect(Collectors.toSet());
+        Set<String> internalEventsIds = eventController.getAll().stream().map(BaseEntity::getExternalId).collect(Collectors.toSet());
+        internalEventsIds.removeAll(externalEventsIds);
+        internalEventsIds.forEach(eventController::deleteByExternalId);
+    }
+
 }

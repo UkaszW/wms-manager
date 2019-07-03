@@ -7,27 +7,28 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class EventService {
+public class EventService implements ExecutionAware<Event>, UpdateAware<Event> {
 
-    protected final EventRepository repository;
+    private final EventRepository repository;
 
     public EventService(EventRepository repository) {
         this.repository = repository;
     }
 
-    public void execute(Event event) {
-        switch (event.getAction()) {
+    @Override
+    public void execute(Event object) {
+        switch (object.getAction()) {
             case "ADD":
-                AddEvent addEvent = (AddEvent) event;
+                AddEvent addEvent = (AddEvent) object;
 
                 break;
             case "DELETE":
-                DeleteEvent deleteEvent = (DeleteEvent) event;
+                DeleteEvent deleteEvent = (DeleteEvent) object;
 
 
                 break;
             case "TRANSFER":
-                TransferEvent transferEvent = (TransferEvent) event;
+                TransferEvent transferEvent = (TransferEvent) object;
 
 
                 break;
@@ -35,4 +36,19 @@ public class EventService {
                 log.error("Unrecognized event type");
         }
     }
+
+    @Override
+    public void update(Long id, Event object) {
+        repository.findById(id).ifPresentOrElse(event -> {
+            event.setObjectId(object.getObjectId());
+            event.setStatus(object.getStatus());
+            event.setProcessed(object.isProcessed());
+            event.setAccepted(object.isAccepted());
+            event.setRead(object.isRead());
+            event.setComment(object.getComment());
+
+            repository.save(event);
+        }, () -> log.error("Event with id: {} not exist!", id));
+    }
+
 }
